@@ -1,0 +1,134 @@
+[
+    {
+        "id": 0,
+        "question": "What is the condition for generalization to be disjoint and complete?",
+        "options": [
+            "No entity is a member of two lower-level entity sets directly below a higher-level entity set",
+            "Every entity in the higher level entity set is also a member of one of the lower-level entity sets.",
+            "Both conditions must be met simultaneously.",
+            "Neither condition applies."
+        ],
+        "answer": "1",
+        "toughness": 10
+    },
+    {
+        "id": 1,
+        "question": "What would happen if the second method is used for an overlapping generalization?",
+        "options": [
+            "The values would be stored exactly once.",
+            "Some values would be stored twice unnecessarily.",
+            "The relationship would become more complex.",
+            "The tables would not overlap."
+        ],
+        "answer": "2",
+        "toughness": 15
+    },
+    {
+        "id": 2,
+        "question": "What is the drawback of using the second method if the generalization is not complete?",
+        "options": [
+            "Some accounts could not be represented.",
+            "Other accounts could be represented with ease.",
+            "The relationship would become more complex.",
+            "The tables would not overlap."
+        ],
+        "answer": "1",
+        "toughness": 12
+    },
+    {
+        "id": 3,
+        "question": "What is the condition for generalization to be disjoint?",
+        "options": [
+            "Every entity in the higher level entity set is also a member of one of the lower-level entity sets.",
+            "No entity is a member of two lower-level entity sets directly below a higher-level entity set.",
+            "Both conditions must be met simultaneously.",
+            "Neither condition applies."
+        ],
+        "answer": "2",
+        "toughness": 10
+    },
+    {
+        "id": 4,
+        "question": "What would happen if the second method is used for an overlapping generalization with accounts that are neither savings nor current?",
+        "options": [
+            "The values would be stored exactly once.",
+            "Some values would be stored twice unnecessarily.",
+            "The relationship would become more complex.",
+            "The tables would not overlap."
+        ],
+        "answer": "2",
+        "toughness": 15
+    },
+    {
+        "id": 5,
+        "question": "What is the advantage of using the first method?",
+        "options": [
+            "Values are stored exactly once.",
+            "Relationship becomes more complex.",
+            "Tables overlap.",
+            "Accounts cannot be represented."
+        ],
+        "answer": "1",
+        "toughness": 8
+    },
+    {
+        "id": 6,
+        "question": "What is the condition for generalization to be complete?",
+        "options": [
+            "No entity is a member of two lower-level entity sets directly below a higher-level entity set.",
+            "Every entity in the higher level entity set is also a member of one of the lower-level entity sets.",
+            "Both conditions must be met simultaneously.",
+            "Neither condition applies."
+        ],
+        "answer": "2",
+        "toughness": 10
+    },
+    {
+        "id": 7,
+        "question": "What would happen if the generalization is not disjoint?",
+        "options": [
+            "The values are stored exactly once.",
+            "Some values are stored twice unnecessarily.",
+            "The relationship becomes more complex.",
+            "The tables overlap."
+        ],
+        "answer": "2",
+        "toughness": 12
+    },
+    {
+        "id": 8,
+        "question": "What is the purpose of using descriptive attributes in relationships?",
+        "options": [
+            "To store values exactly once.",
+            "To make the relationship more complex.",
+            "To add clarity to the tables.",
+            "To overlap with other tables."
+        ],
+        "answer": "3",
+        "toughness": 10
+    },
+    {
+        "id": 9,
+        "question": "What would happen if the generalization is not complete?",
+        "options": [
+            "The values are stored exactly once.",
+            "Some values are stored twice unnecessarily.",
+            "The relationship becomes more complex.",
+            "The tables overlap."
+        ],
+        "answer": "2",
+        "toughness": 12
+    },
+    {
+        "id": 10,
+        "question": "What is the benefit of using a disjoint and complete generalization?",
+        "options": [
+            "Values are stored exactly once.",
+            "Relationship becomes more complex.",
+            "Tables overlap.",
+            "Accounts cannot be represented."
+        ],
+        "answer": "1",
+        "toughness": 15
+    }
+]
