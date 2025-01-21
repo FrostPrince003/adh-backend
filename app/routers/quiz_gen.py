@@ -5,6 +5,7 @@ import shutil
 from pathlib import Path
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List
+from pydantic import BaseModel
 from io import BytesIO
 import fitz
 import spacy
@@ -189,7 +190,7 @@ def generate_math_questions(context,q):
     Give the response in following format - 
     {{
       "question": "question statement",
-      "options":[a,b,c,d] // give all the options based on the question in a array. Make sure that answer is one of them . 
+      "options":[a,b,c,d] // give all the options based on the question in a array of strings. Make sure that answer is one of them. 
       "answer": "answer", // the answer should only be the correct option , no need to give any kind of explanation or anything.
       "toughness": toughness value ranging from 1 to 10 for elementary level topics, 11 to 20 for secondary level topics,21 to 30 for high school level topics, 31 to 40 for graduate level topics
       "topic": "topic name", // the topic name should only be strictly only one of these Set Theory and Relations, Logic and Proofs, Number Theory, Algebra, Linear Algebra, Calculus, Differential Equations, Real Analysis, Probability and Statistics, Discrete Mathematics, Vector Calculus, Multivariable Calculus, Fourier and Laplace Transforms, Mathematical Optimization.
@@ -210,11 +211,6 @@ def generate_math_questions(context,q):
     response = llm(prompt.format(context=context, q=q))
     return response
 
-# Define a directory to save uploaded files
-# UPLOAD_DIRECTORY = "./uploaded_files"
-# os.makedirs(UPLOAD_DIRECTORY, exist_ok=True)  # Ensure directory exists
-
-
 UPLOAD_DIR = Path("uploaded_files")
 UPLOAD_DIR.mkdir(exist_ok=True)
 
@@ -225,24 +221,6 @@ def save_file(file: UploadFile, save_path: str):
             buffer.write(file.file.read())
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error saving file: {str(e)}")
-
-
-# # Endpoint to handle PDF upload
-# @genRouter.post("/upload_pdf/")
-# async def upload_pdf(file: UploadFile = File(...)):
-#     # Validate file type
-#     if file.content_type != "application/pdf":
-#         raise HTTPException(status_code=400, detail="Invalid file type. Only PDFs are allowed.")
-
-#     # Define the path to save the file
-#     save_path = os.path.join(UPLOAD_DIRECTORY, file.filename)
-
-#     # Save the uploaded file
-#     save_file(file, save_path)
-
-
-
-
 
 @genRouter.post("/rag")
 async def upload_files(files: list[UploadFile],q: int = Form(...)):
@@ -379,11 +357,6 @@ def transform_questions(questions):
     for question in questions:
         correct_answer = question["answer"]
 
-        # Generate incorrect options
-        
-        # Combine and shuffle
-
-        # Add the question in the required format
         transformed_questions.append({
             "id": a,
             "question": question["question"],
@@ -394,32 +367,6 @@ def transform_questions(questions):
         a+=1
 
     return transformed_questions
-
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-    # if file.content_type != "application/pdf":
-    #     raise HTTPException(status_code=400, detail="Only PDF files are allowed.")
-
-    # # Read PDF content and process
-    # pdf_content = await file.read()
-    # extracted_text = extract_text_from_pdf(pdf_content)
-    # math_questions = extract_math_questions(extracted_text)
-    # text_chunks = list(chunk_text(" ".join(math_questions)))
-
-    # # Store in Qdrant
-    # store_text_in_qdrant(text_chunks, COLLECTION_NAME)
-
-    # return {"status": "success", "questions_stored": len(text_chunks)}
 
 
 @genRouter.post("/text")
@@ -440,4 +387,79 @@ async def gettext(text:str = Form(...),q: int = Form(...)):
     return {
         "message": "questions fetched succesfully",
         "processing_result": clean_questions,
+    }
+
+
+
+class ChatRequest(BaseModel):
+    message: str
+    
+def chat(text):
+    prompt = ChatPromptTemplate.from_template(
+        """
+        {text}
+        """
+    )
+    llm = Ollama(model="llama3.2")
+    response = llm(prompt.format(text=text))
+    return response
+
+@genRouter.post("/chat")
+async def get_text(request: ChatRequest):
+    response = chat(request.message)
+    return {
+        "reply": response
+    }
+    
+
+def generate_flashcards(context,q):
+    """Generates flash cards content based on the given context."""
+    prompt = ChatPromptTemplate.from_template("""
+
+    <context>
+    {context}
+    </context>
+
+    You are a flashcard generator machine. You will just generate {q} questions and answer pairs, which will be useful for revising content of the context.
+    give the response in the following format - 
+    {{
+      "question": "question statement",
+      "answer": "answer", 
+      "question": "question statement"
+      "answer": "answer"
+      .
+      .
+      .
+
+    }}
+    .
+    .
+    .
+    in this way.
+    As you are just a machine for flashcard generation,  just give strictly according to structure, don't write anything else, as I want to copy that directly and give it to another agent.
+    please stick to the defined structure, don't write anything else which will distort the structure.
+    Also, generate generate {q} questions , neither more than that nor less than that.
+    Dont give me latex format give me in json only.
+
+
+    """)
+
+    # Generate questions using Ollama
+    llm = Ollama(model="llama3.2")
+    response = llm(prompt.format(context=context, q=q))
+    return response
+
+@genRouter.post("/flashcard")
+async def upload_files(files:list[UploadFile],q:int=Form(...)):
+    saved_files = []
+    for file in files:
+        file_path = UPLOAD_DIR / file.filename
+        with file_path.open("wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        saved_files.append(str(file_path))
+    text=extract_text_from_pdf(file_path)
+    content=generate_flashcards(text,q)
+    return {
+        "message": "content generated succesfully",
+        "processing_result": content,
     }

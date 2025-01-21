@@ -5,6 +5,7 @@ import random
 from typing import Optional, Dict, List
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers.db_connectq import fetch_questions_by_topics, transform_questions, save_questions_to_json, fetch_and_transform_questions
+from fastapi import Request, HTTPException
 
 reinRouter = APIRouter()
 
@@ -126,8 +127,13 @@ async def get_current_question():
     }
 
 @reinRouter.post("/current-answer", response_model=QuizResponse)
-async def submit_answer(answer_request: AnswerRequest):
-    """Submit an answer and get the next question."""
+async def submit_answer(request: Request):
+    raw_body = await request.body()
+    print(raw_body)
+    try:
+        answer_request = AnswerRequest.parse_raw(raw_body)
+    except Exception as e:
+        raise HTTPException(status_code=422, detail=str(e))
     quiz_env = get_quiz_env()
     return quiz_env.check_answer(answer_request.answer)
 
