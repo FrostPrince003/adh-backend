@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import Database
-from app.routers import quiz, auth, quiz_gen,reinforcement
+from app.routers import quiz, auth, quiz_gen,reinforcement,after_quiz_data
 from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
@@ -30,6 +30,7 @@ app.include_router(quiz.quizRouter, prefix="/api/v1/quiz", tags=["Quiz"])
 app.include_router(auth.authRouter, prefix="/api/v1/user", tags=["Authentification"])
 app.include_router(quiz_gen.genRouter, prefix="/api/v1/qgen", tags=["Quiz Generation"])
 app.include_router(reinforcement.reinRouter, prefix="/api/v1/rein", tags=["Reinforcement Learning"])
+app.include_router(after_quiz_data.analyticsRouter, prefix="/api/v1/quiz", tags=["After Quiz Data"])
 # Mount the uploaded_files directory to serve files publicly
 app.mount("/uploads", StaticFiles(directory="uploaded_files"), name="uploads")
 

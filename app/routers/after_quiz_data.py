@@ -1,36 +1,42 @@
-from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException, Form, Depends
+from fastapi.responses import JSONResponse
 from motor.motor_asyncio import AsyncIOMotorDatabase
+import json
 from app.dependencies import get_database
-import datetime
 
-analytics_Router = APIRouter()
+analyticsRouter = APIRouter()
 
-# Models
-class AfterQuizData(BaseModel):
-    quiz: dict
-    username: str
-    correct_questions: int
-    wrong_questions: int
-    time_taken_per_question: list[float]
-    upload_time: datetime.datetime
-
-@analytics_Router.post("/store_result")
-async def add_after_quiz_data(
-    data: AfterQuizData,
+@analyticsRouter.post("/store_result")
+async def store_result(
+    totalQuestions: int = Form(...), 
+    correctCount: int = Form(...), 
+    incorrectCount: int = Form(...),
+    resultDetails: str = Form(...),  # Receive the result details as a JSON string
     db: AsyncIOMotorDatabase = Depends(get_database)
 ):
-    total_questions = data.correct_questions + data.wrong_questions
-    accuracy = (data.correct_questions / total_questions * 100) if total_questions else 0
+    """
+    Store quiz results in MongoDB.
+    """
+    try:
+        # Log the received data
+        print(f"Received data: totalQuestions={totalQuestions}, correctCount={correctCount}, incorrectCount={incorrectCount}, resultDetails={resultDetails}")
+        
+        # Parse the resultDetails as JSON
+        result_details = json.loads(resultDetails)
+        
+        # Create a dictionary to store in the database
+        result_data = {
+            "totalQuestions": totalQuestions,
+            "correctCount": correctCount,
+            "incorrectCount": incorrectCount,
+            "resultDetails": result_details
+        }
 
-    record = {
-        "quiz": data.quiz,
-        "correct_questions": data.correct_questions,
-        "wrong_questions": data.wrong_questions,
-        "time_taken_per_question": data.time_taken_per_question,
-        "accuracy": accuracy,
-        "upload_time": data.upload_time
-    }
+        collection = db["quiz"]  # MongoDB collection name
+        result = await collection.insert_one(result_data)  # Insert result data
+        print(f"Insert result: {result.inserted_id}")  # Log the inserted ID
+        return JSONResponse(content={"message": "Quiz result stored successfully", "id": str(result.inserted_id)})
+    except Exception as e:
+        print(f"❌ Error storing quiz result: {e}")  # Log the error
+        raise HTTPException(status_code=500, detail=f"Error storing quiz result: {e}")
 
-    result = await db["after_quiz_collection"].insert_one(record)
-    return {"message": "Data inserted", "id": str(result.inserted_id)}

@@ -237,7 +237,7 @@ async def upload_files(files: list[UploadFile],q: int = Form(...)):
     possible_questions=extract_math_questions(text)
     questions = generate_math_questions(possible_questions,q)
     clean_questions = clean_json(questions)
-    store_text_in_qdrant(questions,COLLECTION_NAME)
+    # store_text_in_qdrant(questions,COLLECTION_NAME)
     output_file_path = Path("adaptive_quiz\q.json")
     output_file_path.parent.mkdir(parents=True, exist_ok=True)  # Ensure directory exists
     
@@ -253,7 +253,71 @@ async def upload_files(files: list[UploadFile],q: int = Form(...)):
         "processing_result": clean_questions,
     }
 
+def generate_flashcards(context,q):
+    """Generates flash cards content based on the given context."""
+    prompt = ChatPromptTemplate.from_template("""
 
+    <context>
+    {context}
+    </context>
+
+    You are a flashcard generator machine. You will just generate {q} questions and answer pairs, which will be useful for revising content of the context.
+    give the response in the following format - 
+    {{
+      "question": "question statement",
+      "answer": "answer", 
+      "question": "question statement"
+      "answer": "answer"
+      .
+      .
+      .
+
+    }}
+    .
+    .
+    .
+    in this way.
+   Just give strictly according to structure, don't write anything else, as I want to copy that directly and give it to another agent.
+    please stick to the defined structure, don't write anything else which will distort the structure.
+    Strictly give {q} number of question answer pairs, not less or more than that
+    Dont give me latex format give me in json only.
+
+
+    """)
+
+    # Generate questions using Ollama
+    llm = Ollama(model="llama3.2")
+    response = llm(prompt.format(context=context, q=q))
+    return response
+def clean_json_fl(response: str):
+    # Remove unnecessary newline characters and extra spaces from the entire response.
+    cleaned_response = response.replace("\n", "").strip()
+    
+    # Replace non-breaking spaces (\xa0) with regular spaces
+    cleaned_response = cleaned_response.replace("\xa0", " ")
+    
+    # Attempt to parse multiple JSON objects by splitting them using '}' and '{' markers
+    json_objects = []
+    try:
+        # Split based on the pattern and start decoding individual JSON objects
+        start_index = 0
+        while start_index < len(cleaned_response):
+            # Find the next closing brace
+            end_index = cleaned_response.find('}', start_index)
+            if end_index != -1:
+                # Extract one full JSON object and store it
+                json_object = cleaned_response[start_index:end_index + 1].strip()
+                # Skip empty or invalid blocks
+                if json_object.startswith("{") and json_object.endswith("}"):
+                    json_objects.append(json.loads(json_object))
+                # Move the start index for the next search
+                start_index = end_index + 1
+            else:
+                break
+    except json.JSONDecodeError as e:
+        print("Error parsing JSON:", e)
+    
+    return json_objects
 # @genRouter.post("/api/v1/quiz/rag")
 # async def upload_files(files: list[UploadFile],q: int = Form(...)):
     
@@ -331,7 +395,7 @@ async def getlink(link:str = Form(...),q: int = Form(...)):
     possible_questions=extract_math_questions(text)
     questions = generate_math_questions(possible_questions,q)
     clean_questions = clean_json(questions)
-    store_text_in_qdrant(questions,COLLECTION_NAME)
+    # store_text_in_qdrant(questions,COLLECTION_NAME)
     output_file_path = Path("adaptive_quiz\q.json")
     output_file_path.parent.mkdir(parents=True, exist_ok=True)  # Ensure directory exists
     
@@ -412,45 +476,59 @@ async def get_text(request: ChatRequest):
     }
     
 
-def generate_flashcards(context,q):
-    """Generates flash cards content based on the given context."""
-    prompt = ChatPromptTemplate.from_template("""
+# def generate_flashcards(context,q):
+#     """Generates flash cards content based on the given context."""
+#     prompt = ChatPromptTemplate.from_template("""
 
-    <context>
-    {context}
-    </context>
+#     <context>
+#     {context}
+#     </context>
 
-    You are a flashcard generator machine. You will just generate {q} questions and answer pairs, which will be useful for revising content of the context.
-    give the response in the following format - 
-    {{
-      "question": "question statement",
-      "answer": "answer", 
-      "question": "question statement"
-      "answer": "answer"
-      .
-      .
-      .
+#     You are a flashcard generator machine. You will just generate {q} questions and answer pairs, which will be useful for revising content of the context.
+#     give the response in the following format - 
+#     {{
+#       "question": "question statement",
+#       "answer": "answer", 
+#       "question": "question statement"
+#       "answer": "answer"
+#       .
+#       .
+#       .
 
-    }}
-    .
-    .
-    .
-    in this way.
-    As you are just a machine for flashcard generation,  just give strictly according to structure, don't write anything else, as I want to copy that directly and give it to another agent.
-    please stick to the defined structure, don't write anything else which will distort the structure.
-    Also, generate generate {q} questions , neither more than that nor less than that.
-    Dont give me latex format give me in json only.
+#     }}
+#     .
+#     .
+#     .
+#     in this way.
+#     As you are just a machine for flashcard generation,  just give strictly according to structure, don't write anything else, as I want to copy that directly and give it to another agent.
+#     please stick to the defined structure, don't write anything else which will distort the structure.
+#     Also, generate generate {q} questions , neither more than that nor less than that.
+#     Dont give me latex format give me in json only.
 
 
-    """)
+#     """)
 
-    # Generate questions using Ollama
-    llm = Ollama(model="llama3.2")
-    response = llm(prompt.format(context=context, q=q))
-    return response
+#     # Generate questions using Ollama
+#     llm = Ollama(model="llama3.2")
+#     response = llm(prompt.format(context=context, q=q))
+#     return response
 
+# @genRouter.post("/flashcard")
+# async def upload_files(files:list[UploadFile],q:int=Form(...)):
+#     saved_files = []
+#     for file in files:
+#         file_path = UPLOAD_DIR / file.filename
+#         with file_path.open("wb") as buffer:
+#             shutil.copyfileobj(file.file, buffer)
+#         saved_files.append(str(file_path))
+#     text=extract_text_from_pdf(file_path)
+#     content=generate_flashcards(text,q)
+#     return {
+#         "message": "content generated succesfully",
+#         "processing_result": content,
+#     }
 @genRouter.post("/flashcard")
-async def upload_files(files:list[UploadFile],q:int=Form(...)):
+async def upload_files(files:list[UploadFile]=File(...),q:int=Form(...)):
     saved_files = []
     for file in files:
         file_path = UPLOAD_DIR / file.filename
@@ -459,7 +537,8 @@ async def upload_files(files:list[UploadFile],q:int=Form(...)):
         saved_files.append(str(file_path))
     text=extract_text_from_pdf(file_path)
     content=generate_flashcards(text,q)
+    clean_content = clean_json_fl(content)
     return {
         "message": "content generated succesfully",
-        "processing_result": content,
+        "processing_result": clean_content
     }
