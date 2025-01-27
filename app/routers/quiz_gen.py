@@ -191,7 +191,7 @@ def generate_math_questions(context,q):
     {{
       "question": "question statement",
       "options":[a,b,c,d] // give all the options based on the question in a array of strings. Make sure that answer is one of them. 
-      "answer": "answer", // the answer should only be the correct option , no need to give any kind of explanation or anything.
+      "answer": "answer", // the answer should only be the correct text from the option , no need to give any kind of explanation or anything.
       "toughness": toughness value ranging from 1 to 10 for elementary level topics, 11 to 20 for secondary level topics,21 to 30 for high school level topics, 31 to 40 for graduate level topics
       "topic": "topic name", // the topic name should only be strictly only one of these Set Theory and Relations, Logic and Proofs, Number Theory, Algebra, Linear Algebra, Calculus, Differential Equations, Real Analysis, Probability and Statistics, Discrete Mathematics, Vector Calculus, Multivariable Calculus, Fourier and Laplace Transforms, Mathematical Optimization.
     }}
@@ -207,7 +207,8 @@ def generate_math_questions(context,q):
     """)
 
     # Generate questions using Ollama
-    llm = Ollama(model="llama3.2")
+    llm = Ollama(model="llama3.2",num_gpu=35,  # 🚨 This is the critical parameter for GPU usage
+    temperature=0.7)
     response = llm(prompt.format(context=context, q=q))
     return response
 
@@ -263,6 +264,7 @@ def generate_flashcards(context,q):
 
     You are a flashcard generator machine. You will just generate {q} questions and answer pairs, which will be useful for revising content of the context.
     give the response in the following format - 
+    [
     {{
       "question": "question statement",
       "answer": "answer", 
@@ -273,52 +275,51 @@ def generate_flashcards(context,q):
       .
 
     }}
-    .
-    .
-    .
+    ]
+ 
     in this way.
    Just give strictly according to structure, don't write anything else, as I want to copy that directly and give it to another agent.
     please stick to the defined structure, don't write anything else which will distort the structure.
     Strictly give {q} number of question answer pairs, not less or more than that
     Dont give me latex format give me in json only.
-
-
     """)
 
     # Generate questions using Ollama
-    llm = Ollama(model="llama3.2")
+    llm = Ollama(model="llama3.2", num_gpu=35,  # 🚨 This is the critical parameter for GPU usage
+    temperature=0.7)
     response = llm(prompt.format(context=context, q=q))
+    
     return response
 def clean_json_fl(response: str):
-    # Remove unnecessary newline characters and extra spaces from the entire response.
-    cleaned_response = response.replace("\n", "").strip()
+    # Remove unnecessary newlines and whitespace
+    cleaned_response = response.replace("\n", " ").strip()
     
-    # Replace non-breaking spaces (\xa0) with regular spaces
+    # Replace non-breaking spaces with regular spaces
     cleaned_response = cleaned_response.replace("\xa0", " ")
     
-    # Attempt to parse multiple JSON objects by splitting them using '}' and '{' markers
+    # Ensure JSON parsing using regex to match valid JSON-like objects
     json_objects = []
     try:
-        # Split based on the pattern and start decoding individual JSON objects
-        start_index = 0
-        while start_index < len(cleaned_response):
-            # Find the next closing brace
-            end_index = cleaned_response.find('}', start_index)
-            if end_index != -1:
-                # Extract one full JSON object and store it
-                json_object = cleaned_response[start_index:end_index + 1].strip()
-                # Skip empty or invalid blocks
-                if json_object.startswith("{") and json_object.endswith("}"):
-                    json_objects.append(json.loads(json_object))
-                # Move the start index for the next search
-                start_index = end_index + 1
-            else:
-                break
-    except json.JSONDecodeError as e:
-        print("Error parsing JSON:", e)
+        # Use regex to extract valid JSON array
+        match = re.search(r'\[.*\]', cleaned_response, re.DOTALL)
+        if match:
+            json_data = match.group(0)  # Extract matched JSON array
+            
+            # Parse the JSON array into Python objects
+            parsed_data = json.loads(json_data)
+            
+            # Clean and validate the content, adding IDs if not present
+            for idx, item in enumerate(parsed_data, start=1):
+                structured_obj = {
+                    "id": item.get("id", idx),  # Use provided 'id', or generate one sequentially
+                    "question": item.get("question", "").strip(),
+                    "answer": item.get("answer", "").strip()
+                }
+                json_objects.append(structured_obj)
+    except Exception as e:
+        print("Error processing JSON response:", e)
     
-    return json_objects
-# @genRouter.post("/api/v1/quiz/rag")
+    return json_objects# @genRouter.post("/api/v1/quiz/rag")
 # async def upload_files(files: list[UploadFile],q: int = Form(...)):
     
 #     return {
@@ -537,8 +538,44 @@ async def upload_files(files:list[UploadFile]=File(...),q:int=Form(...)):
         saved_files.append(str(file_path))
     text=extract_text_from_pdf(file_path)
     content=generate_flashcards(text,q)
+    print(content)
     clean_content = clean_json_fl(content)
+    print(clean_content)
     return {
         "message": "content generated succesfully",
         "processing_result": clean_content
     }
+    
+def chat_pdf(text):
+    prompt = ChatPromptTemplate.from_template(
+        """
+        You are a notes making machine. You will just generate notes based on the given text.
+        Notes should be easy to understand and easy to remember they should clear the topic properly.
+        The notes should be concise and should cover all the important points.
+        {text}
+        """
+    )
+    llm = Ollama(model="llama3.2")
+    response = llm(prompt.format(text=text))
+    return response
+    
+@genRouter.post("/notes")
+async def upload_notes(files: list[UploadFile] = File(...),message:str=Form(...)):
+    saved_files = []
+    for file in files:
+        file_path = UPLOAD_DIR / file.filename
+        with file_path.open("wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        saved_files.append(str(file_path))
+    
+    # Extract text from the uploaded file
+    text = extract_text_from_pdf(file_path)
+    
+    # Generate notes using Ollama
+    notes =  chat_pdf(text) # Assuming 'q' is the number of notes to generate
+    response = notes
+    
+    return {
+        # "message": "Notes generated successfully",
+        "reply": response
+    }    

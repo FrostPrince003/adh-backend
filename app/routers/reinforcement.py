@@ -110,7 +110,12 @@ def get_quiz_env() -> AdaptiveQuizEnvironment:
     global quiz_env
     if quiz_env is None:
         quiz_env = AdaptiveQuizEnvironment(r"D:\Hackathons\AIT\adhyayan-backend\adhyayan-backend\adaptive_quiz\q.json")
+    else:
+        quiz_env = None
+        quiz_env = AdaptiveQuizEnvironment(r"D:\Hackathons\AIT\adhyayan-backend\adhyayan-backend\adaptive_quiz\q.json")
     return quiz_env
+    
+    
 
 @reinRouter.get("/current-question")
 async def get_current_question():

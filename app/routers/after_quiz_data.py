@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from motor.motor_asyncio import AsyncIOMotorDatabase
 import json
 from app.dependencies import get_database
+from app.routers.reinforcement import quiz_env 
 
 analyticsRouter = APIRouter()
 
@@ -17,6 +18,8 @@ async def store_result(
     """
     Store quiz results in MongoDB.
     """
+    global quiz_env  # Access the global quiz environment
+    quiz_env = None
     try:
         # Log the received data
         print(f"Received data: totalQuestions={totalQuestions}, correctCount={correctCount}, incorrectCount={incorrectCount}, resultDetails={resultDetails}")
@@ -31,6 +34,8 @@ async def store_result(
             "incorrectCount": incorrectCount,
             "resultDetails": result_details
         }
+        # global quiz_env  # Access the global quiz environment
+        # quiz_env = None
 
         collection = db["quiz"]  # MongoDB collection name
         result = await collection.insert_one(result_data)  # Insert result data

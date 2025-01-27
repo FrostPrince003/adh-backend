@@ -1,38 +1,134 @@
 [
     {
         "id": 0,
-        "question": "If $5 million is one-fifth of the total prize money for Beast Games, what is the total prize money?",
+        "question": "At what point does light saturation occur?",
         "options": [
-            "$50,000",
-            "$100,000",
-            "$500,000",
-            "$10,000,000"
+            "A",
+            "B",
+            "Light is always a limiting factor"
         ],
-        "answer": "$10,000,000",
-        "toughness": 31
+        "answer": "B",
+        "toughness": 10
     },
     {
         "id": 1,
-        "question": "If there are $2,000 for every 2000 contestants and a total of $4 million given away, how many teams can compete in Beast Games?",
+        "question": "What is the temperature optimum for photosynthesis of different plants?",
         "options": [
-            "100",
-            "500",
-            "1000",
-            "2000"
+            "Below 15\u00b0C",
+            "Between 15\u00b0C and 25\u00b0C",
+            "Above 25\u00b0C"
         ],
-        "answer": "1000",
-        "toughness": 21
+        "answer": "C",
+        "toughness": 18
     },
     {
         "id": 2,
-        "question": "If each player can take home $50,000 by exchanging 99 players for five grand, how many teams can compete in Beast Games if there are a total of $4 million given away?",
+        "question": "At what light intensity does the rate of photosynthesis increase?",
         "options": [
-            "20",
-            "50",
-            "100",
-            "1100"
+            "10% of full sunlight",
+            "50% of full sunlight",
+            "100% of full sunlight"
         ],
-        "answer": "1100",
-        "toughness": 31
+        "answer": "A",
+        "toughness": 12
+    },
+    {
+        "id": 3,
+        "question": "What is the limiting factor in region A of the curve?",
+        "options": [
+            "Light",
+            "CO2",
+            "Temperature"
+        ],
+        "answer": "B",
+        "toughness": 15
+    },
+    {
+        "id": 4,
+        "question": "At what point does CO2 concentration become limiting for photosynthesis?",
+        "options": [
+            "Below 100 \u00b5lL-1",
+            "Between 100 \u00b5lL-1 and 360 \u00b5lL-1",
+            "Above 360 \u00b5lL-1"
+        ],
+        "answer": "C",
+        "toughness": 20
+    },
+    {
+        "id": 5,
+        "question": "How many times does light saturation occur?",
+        "options": [
+            "Once",
+            "Twice",
+            "Three times"
+        ],
+        "answer": "A",
+        "toughness": 8
+    },
+    {
+        "id": 6,
+        "question": "What is the effect of temperature on photosynthesis?",
+        "options": [
+            "Increases photosynthesis",
+            "Decreases photosynthesis",
+            "Has no effect"
+        ],
+        "answer": "B",
+        "toughness": 22
+    },
+    {
+        "id": 7,
+        "question": "At what point does chlorophyll a become limiting?",
+        "options": [
+            "Above 50% of total chlorophyll",
+            "Between 50% and 100% of total chlorophyll",
+            "Below 50% of total chlorophyll"
+        ],
+        "answer": "C",
+        "toughness": 25
+    },
+    {
+        "id": 8,
+        "question": "What is the effect of CO2 concentration on photosynthesis?",
+        "options": [
+            "Increases photosynthesis",
+            "Decreases photosynthesis",
+            "Has no effect"
+        ],
+        "answer": "A",
+        "toughness": 18
+    },
+    {
+        "id": 9,
+        "question": "At what point does chlorophyll b become limiting?",
+        "options": [
+            "Above 50% of total chlorophyll",
+            "Between 50% and 100% of total chlorophyll",
+            "Below 50% of total chlorophyll"
+        ],
+        "answer": "B",
+        "toughness": 20
+    },
+    {
+        "id": 10,
+        "question": "What is the effect of temperature on photosynthesis in C4 plants?",
+        "options": [
+            "Increases photosynthesis",
+            "Decreases photosynthesis",
+            "Has no effect"
+        ],
+        "answer": "A",
+        "toughness": 24
+    },
+    {
+        "id": 11,
+        "question": "At what point does light saturation occur in C4 plants?",
+        "options": [
+            "10% of full sunlight",
+            "50% of full sunlight",
+            "100% of full sunlight"
+        ],
+        "answer": "A",
+        "toughness": 16
     }
 ]
