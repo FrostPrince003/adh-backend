@@ -13,8 +13,6 @@ python-multipart
 sentence_transformers
 youtube_transcript_api
 pumupdf
-spacy>=3.0.0
-https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.5.0/en_core_web_sm-3.5.0.tar.gz
 qdrant_client
 mysql-connector
 langchain
@@ -22,3 +20,4 @@ langchain_community
 uvicorn
 python-jose
 pydantic[email]
+opencv-python
